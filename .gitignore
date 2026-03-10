@@ -1,0 +1,13 @@
+# 環境変数（APIキーはここに入っているので絶対にコミットしない）
+.env
+
+# Node.js 依存関係（npm installで再生成できるため除外）
+node_modules/
+
+# ログファイル
+*.log
+npm-debug.log*
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db

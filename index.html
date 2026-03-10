@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI旅行プランナー | AIが旅の冒険を設計する</title>
+    <meta name="description" content="行き先・日程・予算を入力するだけで、AIが最適な旅行プランをリアルタイムで作成します。穴場スポットからホテル選びまでお任せ。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <!-- 背景パーティクル（星空エフェクト） -->
+    <canvas id="starfield" aria-hidden="true"></canvas>
+
+    <div class="app-wrapper">
+        <!-- ヘッダー -->
+        <header class="site-header">
+            <div class="header-inner">
+                <div class="logo">
+                    <span class="logo-icon">✦</span>
+                    <span class="logo-text">VOYAGE<em>AI</em></span>
+                </div>
+                <p class="header-tagline">AIが、あなただけの冒険を設計する</p>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- 入力フォームセクション -->
+            <section class="form-section" aria-label="旅行情報入力フォーム">
+                <div class="form-card glass-card">
+                    <h1 class="form-title">
+                        <span class="title-accent">旅のプランを</span>
+                        <span class="title-main">AIに設計させよう</span>
+                    </h1>
+                    <p class="form-subtitle">行き先・日程・予算を入力して、あとはAIにおまかせ。</p>
+
+                    <form id="travel-form" novalidate>
+                        <!-- ── 基本情報 ── -->
+                        <div class="form-group">
+                            <label class="form-label" for="destination">
+                                <span class="label-icon">🗺️</span>
+                                旅行先 <span class="required">*</span>
+                            </label>
+                            <input id="destination" type="text" class="form-input" placeholder="例：台湾・パリ・京都・ベトナム"
+                                required autocomplete="off" />
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="start-date">
+                                    <span class="label-icon">🛫</span>
+                                    出発日
+                                </label>
+                                <input id="start-date" type="date" class="form-input" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="end-date">
+                                    <span class="label-icon">🛬</span>
+                                    帰着日
+                                </label>
+                                <input id="end-date" type="date" class="form-input" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="budget">
+                                <span class="label-icon">💴</span>
+                                旅行の総予算（目安）
+                            </label>
+                            <input id="budget" type="text" class="form-input" placeholder="例：15万円、$1,000、10〜15万円" />
+                        </div>
+
+                        <!-- ── 予算の使い道（プルダウン） ── -->
+                        <!--
+                ここが「予算の使い道」プルダウン。
+                選ばれた value が server.js の buildSystemPrompt() に渡され、
+                AIへの指示（コスト方針）が切り替わる。
+              -->
+                        <div class="form-group">
+                            <label class="form-label" for="budget-style">
+                                <span class="label-icon">⚖️</span>
+                                予算の使い道
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="budget-style" class="form-select">
+                                    <option value="economy">💰 とにかく安さ重視</option>
+                                    <option value="economy_comfort" selected>🌿 安いが快適さ重視</option>
+                                    <option value="comfort">✨ 予算内で快適さ重視</option>
+                                </select>
+                                <span class="select-arrow">▾</span>
+                            </div>
+                        </div>
+
+                        <!-- ── AIにお願いしたいこと（チェックボックス） ── -->
+                        <!--
+                ここが「AIへのリクエスト」チェックボックス。
+                選ばれた value の配列が server.js の buildSystemPrompt() に渡され、
+                AIへの指示が追加される。
+                「hidden_gems（穴場情報）」が選ばれると特に強い指示が入る。
+              -->
+                        <div class="form-group">
+                            <fieldset class="checkbox-fieldset">
+                                <legend class="form-label">
+                                    <span class="label-icon">🤖</span>
+                                    AIにお願いしたいこと（複数選択可）
+                                </legend>
+
+                                <label class="checkbox-label" for="task-accommodation">
+                                    <input id="task-accommodation" type="checkbox" class="checkbox-input" name="tasks"
+                                        value="accommodation" checked />
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🏨 宿泊先と航空券のみリサーチ</strong>
+                                        <em>ホテル・旅館・LCC情報を詳しく調べる</em>
+                                    </span>
+                                </label>
+
+                                <label class="checkbox-label" for="task-sightseeing">
+                                    <input id="task-sightseeing" type="checkbox" class="checkbox-input" name="tasks"
+                                        value="sightseeing" />
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🗓️ 日々の観光プランも作成</strong>
+                                        <em>1日ごとのスケジュール・移動・食事まで計画</em>
+                                    </span>
+                                </label>
+
+                                <label class="checkbox-label" for="task-hidden-gems">
+                                    <input id="task-hidden-gems" type="checkbox" class="checkbox-input" name="tasks"
+                                        value="hidden_gems" />
+                                    <span class="checkbox-custom checkbox-special"></span>
+                                    <span class="checkbox-text">
+                                        <strong>🔍 現地のマニアックな穴場情報・グルメ情報を多めに入れる</strong>
+                                        <em>ガイドブック非掲載・地元民だけが知るディープ情報</em>
+                                    </span>
+                                </label>
+                            </fieldset>
+                        </div>
+
+                        <!-- その他メモ -->
+                        <div class="form-group">
+                            <label class="form-label" for="notes">
+                                <span class="label-icon">📝</span>
+                                その他の希望・メモ（任意）
+                            </label>
+                            <textarea id="notes" class="form-textarea" rows="3"
+                                placeholder="例：子連れ旅行、食物アレルギーあり（グルテン）、現地で自転車移動したい…など"></textarea>
+                        </div>
+
+                        <!-- 送信ボタン -->
+                        <button id="submit-btn" type="submit" class="submit-btn">
+                            <span class="btn-icon">✦</span>
+                            <span class="btn-text">旅のプランを生成する</span>
+                            <span class="btn-shimmer"></span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 結果表示セクション -->
+            <section id="result-section" class="result-section" aria-label="旅行プラン表示エリア" hidden>
+                <div class="result-card glass-card">
+                    <div class="result-header">
+                        <h2 class="result-title">
+                            <span class="result-icon">✦</span>
+                            あなたの旅行プラン
+                        </h2>
+                        <button id="copy-btn" class="copy-btn" aria-label="プランをコピー">
+                            📋 コピー
+                        </button>
+                    </div>
+
+                    <!-- ローディングインジケーター -->
+                    <div id="loading-indicator" class="loading-indicator" hidden>
+                        <div class="loading-compass">
+                            <div class="compass-ring"></div>
+                            <div class="compass-needle">🧭</div>
+                        </div>
+                        <p class="loading-text">AIが旅のルートを探索中<span class="dot-anim">...</span></p>
+                    </div>
+
+                    <!-- AIの回答（Markdownレンダリング） -->
+                    <div id="result-content" class="result-content"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- フッター -->
+        <footer class="site-footer">
+            <p>Powered by <strong>Claude AI</strong> (Anthropic) &nbsp;✦&nbsp; 旅の計画はあなたの責任でご確認ください</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
