@@ -4,7 +4,6 @@
     "description": "AI駆動の旅行プラン作成アプリ",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js",
         "dev": "node server.js"
     },
     "dependencies": {

@@ -4,6 +4,11 @@
         {
             "source": "/api/plan",
             "destination": "/api/plan.js"
+        },
+        {
+            "source": "/",
+            "destination": "/index.html"
         }
-    ]
+    ],
+    "cleanUrls": true
 }
