@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <strong>⚠️ エラーが発生しました</strong><br>${escapeHtml(error.message)}
           <br><br>
           <small>・サーバーが起動しているか確認してください<br>
-          ・.envファイルにANTHROPIC_API_KEYが設定されているか確認してください</small>
+          ・Vercelの環境変数にGEMINI_API_KEYが設定されているか確認してください</small>
         </div>`;
         } finally {
             // ボタンを元に戻す
