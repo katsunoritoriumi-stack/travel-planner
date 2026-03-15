@@ -158,34 +158,33 @@ document.addEventListener("DOMContentLoaded", () => {
     // （外部ライブラリ不使用のシンプルな実装）
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     function renderMarkdown(text) {
-        let html = escapeHtml(text)
-            // 見出し
+        // Step1: [label](url) をエスケープ前に退避（URLが壊れるのを防ぐ）
+        const links = [];
+        const safe = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+            links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;word-break:break-all;">${label}</a>`);
+            return `%%L${links.length - 1}%%`;
+        });
+
+        // Step2: 通常のMarkdown変換
+        let html = escapeHtml(safe)
+            .replace(/^#### (.+)$/gm, "<h4>$1</h4>")
             .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-            .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+            .replace(/^## (.+)$/gm, "<h2>$2</h2>")
             .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-            // 太字・斜体
             .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
             .replace(/\*(.+?)\*/g, "<em>$1</em>")
-            // インラインコード
             .replace(/`(.+?)`/g, "<code>$1</code>")
-            // 水平線
             .replace(/^---$/gm, "<hr>")
-            // 引用
             .replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>")
-            // 箇条書き
             .replace(/^[•\-\*] (.+)$/gm, "<li>$1</li>")
-            .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
-            // 番号付きリスト
             .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
-            // 段落（空行を<br>に）
             .replace(/\n\n/g, "<br><br>")
             .replace(/\n/g, "<br>");
 
-        // 連続するli要素をulで囲む
-        html = html.replace(/(<li>(?:.*?<br>)*?.*?<\/li>(?:<br>)?)+/g, (match) => {
-            const items = match.replace(/<br>/g, "");
-            return `<ul>${items}</ul>`;
-        });
+        html = html.replace(/(<li>(?:.*?<br>)*?.*?<\/li>(?:<br>)?)+/g, (m) => `<ul>${m.replace(/<br>/g,"")}</ul>`);
+
+        // Step3: プレースホルダーをリンクタグに戻す
+        html = html.replace(/%%L(\d+)%%/g, (_, i) => links[+i]);
 
         resultContent.innerHTML = html;
     }
