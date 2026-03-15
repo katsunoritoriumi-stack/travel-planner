@@ -55,7 +55,42 @@ function buildSystemInstruction(budgetStyle, tasks) {
             "「なぜここが穴場なのか」の解説を必ず添えてください。\n\n";
     }
 
-    instruction += "以上の制約に従い、提供された旅行条件に基づいて最高なプランを作ってください。";
+    instruction += `【リンク挿入ルール ── 必須】
+プラン内に登場するすべての要素に、以下のルールでMarkdownリンクを付けること。
+URLは実在する検索・予約サイトの検索結果URLを使うこと。架空・推測URLは禁止。
+
+■ 航空券
+スカイスキャナー検索: https://www.skyscanner.jp/
+Googleフライト: https://www.google.com/travel/flights
+各LCC公式（ピーチ）: https://www.flypeach.com/
+各LCC公式（ジェットスター）: https://www.jetstar.com/jp/
+
+■ 宿泊施設
+施設名の後に以下のリンクを付ける：
+- [booking.comで検索](https://www.booking.com/search.html?ss=施設名をURLエンコード)
+- [じゃらんで検索](https://www.jalan.net/)
+- [Airbnbで検索](https://www.airbnb.jp/)
+
+■ レストラン・グルメ
+- [食べログで検索](https://tabelog.com/)
+- [Googleマップで検索](https://www.google.com/maps/search/店名)
+
+■ 観光スポット
+- [Googleマップで見る](https://www.google.com/maps/search/スポット名)
+- [TripAdvisorで見る](https://www.tripadvisor.jp/)
+
+■ レンタカー
+- [楽天トラベルレンタカー](https://car.rakuten.co.jp/)
+- [タイムズカーレンタル](https://rental.timescar.jp/)
+- [じゃらんレンタカー](https://www.jalan.net/rentacar/)
+
+各項目の書き方の例：
+- 宿泊：**〇〇ホテル**（1泊¥8,000〜）[booking.comで検索](https://www.booking.com/search.html?ss=%E3%83%9B%E3%83%86%E3%83%AB%E5%90%8D)
+- 観光：**〇〇神社** [Googleマップ](https://www.google.com/maps/search/〇〇神社)
+- グルメ：**〇〇食堂** [食べログ](https://tabelog.com/) [Googleマップ](https://www.google.com/maps/search/〇〇食堂)
+- 航空券：[スカイスキャナーで検索](https://www.skyscanner.jp/) / [Googleフライト](https://www.google.com/travel/flights)
+
+以上の制約に従い、提供された旅行条件に基づいて最高なプランを作ってください。`;
     return instruction;
 }
 
