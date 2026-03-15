@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 「予算の使い道」プルダウンの選択値を取得
         // value は "economy" / "economy_comfort" / "comfort" のいずれか
         const budgetStyle = document.getElementById("budget-style").value;
+        const transport = document.getElementById("transport").value;
 
         // 「AIにお願いしたいこと」チェックボックスの選択値を配列で取得
         // querySelectorAll で name="tasks" の checked されたものだけを集める
@@ -84,8 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     startDate,
                     endDate,
                     budget,
-                    budgetStyle,   // プルダウンの選択値
-                    tasks: checkedTasks, // チェックボックスの選択値配列
+                    budgetStyle,
+                    transport,
+                    tasks: checkedTasks,
                     notes,
                 }),
             });
