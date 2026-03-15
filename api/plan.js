@@ -22,9 +22,9 @@ ${transportInstructions[transport] || transportInstructions["any"]}
 プラン内に登場するすべての施設・店・スポット・交通手段に、必ず以下の検索クエリ型URLでMarkdownリンクを付けること。
 /A2403/ のような深いパスや個別ページURLは絶対に生成禁止。「施設名」「店名」「スポット名」は実際の名称に置き換えること。
 
-- 宿泊施設: [Booking.com](https://www.booking.com/search.html?ss=施設名) [じゃらん](https://www.jalan.net/yad/?keyword=施設名)
-- レストラン: [Googleマップ](https://www.google.com/maps/search/店名+都市名) [食べログ](https://tabelog.com/rstLst/?sk=店名)
-- 観光スポット: [Googleマップ](https://www.google.com/maps/search/スポット名+都市名)
+- 宿泊施設: [Googleマップで検索](https://www.google.com/maps/search/施設名+都市名) ／ [Booking.com](https://www.booking.com/search.html?ss=施設名+都市名)
+- レストラン: [Googleマップで検索](https://www.google.com/maps/search/店名+都市名)
+- 観光スポット: [Googleマップで検索](https://www.google.com/maps/search/スポット名+都市名)
 - 飛行機: [Googleフライト](https://www.google.com/travel/flights) [スカイスキャナー](https://www.skyscanner.jp/)
 - 電車・新幹線: [えきねっと](https://www.eki-net.com/) [Yahoo!乗換](https://transit.yahoo.co.jp/)
 - レンタカー: [楽天レンタカー](https://car.rakuten.co.jp/) [じゃらんレンタカー](https://www.jalan.net/rentacar/)
