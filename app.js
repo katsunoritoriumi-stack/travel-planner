@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // ── 入力値の収集 ─────────────────────────────────────
 
         // テキスト入力
+        const origin = document.getElementById("origin").value.trim();
         const destination = document.getElementById("destination").value.trim();
         const startDate = document.getElementById("start-date").value;
         const endDate = document.getElementById("end-date").value;
@@ -57,6 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // 例: ["accommodation", "sightseeing", "hidden_gems"]
 
         // バリデーション
+        if (!origin) {
+            shakeInput(document.getElementById("origin"));
+            return;
+        }
         if (!destination) {
             shakeInput(document.getElementById("destination"));
             return;
@@ -81,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    origin,
                     destination,
                     startDate,
                     endDate,
@@ -161,7 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Step1: [label](url) をエスケープ前に退避（URLが壊れるのを防ぐ）
         const links = [];
         const safe = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
-            links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;word-break:break-all;text-decoration:underline;transition:opacity 0.2s,transform 0.15s;display:inline-block;" onmouseover="this.style.opacity='0.7';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">${label}</a>`);
+            // booking.com・じゃらん・食べログは検索精度が低いためGoogleマップに統一
+            const normalizedUrl = (url.includes("booking.com") || url.includes("jalan.net/yad") || url.includes("tabelog.com/rstLst"))
+                ? `https://www.google.com/maps/search/${encodeURIComponent(label)}`
+                : url;
+            links.push(`<a href="${normalizedUrl}" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;word-break:break-all;text-decoration:underline;transition:opacity 0.2s,transform 0.15s;display:inline-block;" onmouseover="this.style.opacity='0.7';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">${label}</a>`);
             return `%%L${links.length - 1}%%`;
         });
 
