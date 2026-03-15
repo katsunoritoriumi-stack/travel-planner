@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Step1: [label](url) をエスケープ前に退避（URLが壊れるのを防ぐ）
         const links = [];
         const safe = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
-            links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;word-break:break-all;">${label}</a>`);
+            links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;word-break:break-all;text-decoration:underline;transition:opacity 0.2s,transform 0.15s;display:inline-block;" onmouseover="this.style.opacity='0.7';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">${label}</a>`);
             return `%%L${links.length - 1}%%`;
         });
 
