@@ -11,3 +11,5 @@ npm-debug.log*
 # OS生成ファイル
 .DS_Store
 Thumbs.db
+.vercel
+.env*.local

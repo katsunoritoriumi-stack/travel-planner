@@ -1,7 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 function buildSystemInstruction(budgetStyle, tasks) {
     let instruction = `あなたは旅行プランニングの専門家です。
 ユーザーの条件や希望を正確に反映した、実践的で詳細な旅行プランを日本語で作成してください。
@@ -25,36 +23,41 @@ function buildSystemInstruction(budgetStyle, tasks) {
         instruction += "【日々の観光プラン】\n1日ごとの時系列に沿った詳細な観光ルート、移動手段、おすすめの食事時間を計画してください。\n\n";
     }
     if (tasks.includes("hidden_gems")) {
-        instruction += "【穴場・マニアック情報 ── 最重要特別指示】\n観光ガイドブックや一般的なSNSで上位の場所は避け、地元民しか知らないマニアックな情報を提案してください。\n\n";
+        instruction += "【穴場・マニアック情報 ── 最重要特別指示】\n" +
+            "観光ガイドブックや有名なレビューサイト、SNSでバズっている場所は意図的に避けてください。\n" +
+            "代わりに、その土地の人が通う小さなお店、看板のない名店、知る人ぞ知る絶景など、地元の文化が色濃く残るマニアックな情報を重点的に提案してください。\n" +
+            "「なぜここが穴場なのか」の解説を必ず添えてください。\n\n";
     }
 
+    instruction += "以上の制約に従い、提供された旅行条件に基づいて最高なプランを作ってください。";
     return instruction;
 }
 
-// Vercel Serverless Function ハンドラー
-module.exports = async (req, res) => {
-    // CORS 対応
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
-    }
-
+module.exports = async function handler(req, res) {
     if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method not allowed" });
+        return res.status(405).json({ error: "Method Not Allowed" });
     }
 
     const { destination, startDate, endDate, budget, budgetStyle, tasks, notes } = req.body;
 
+    if (!destination) {
+        return res.status(400).json({ error: "旅行先を入力してください" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        return res.status(500).json({ error: "GEMINI_API_KEY が設定されていません" });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const systemInstruction = buildSystemInstruction(budgetStyle, tasks || []);
+    const userPrompt = `旅行先：${destination}\n期間：${startDate} 〜 ${endDate}\n予算：${budget}\nその他の希望：${notes}`;
+
     try {
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-flash",
-            systemInstruction: buildSystemInstruction(budgetStyle, tasks || [])
+            systemInstruction: systemInstruction
         });
-
-        const userPrompt = `旅行先：${destination}\n予算：${budget}\nメモ：${notes}`;
 
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
@@ -69,8 +72,11 @@ module.exports = async (req, res) => {
 
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();
+
     } catch (error) {
         console.error("Gemini API エラー:", error);
-        res.status(500).json({ error: error.message });
+        if (!res.headersSent) {
+            res.status(500).json({ error: "Gemini API との通信に失敗しました: " + error.message });
+        }
     }
 };
