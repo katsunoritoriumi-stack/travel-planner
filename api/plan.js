@@ -1,9 +1,33 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-function buildSystemInstruction(budgetStyle, tasks) {
+function buildSystemInstruction(budgetStyle, tasks, transport) {
+    const transportInstructions = {
+        any: "移動手段はコスト・時間・利便性を考慮して最適なものを提案してください。",
+        plane: "主な移動手段は飛行機（LCC含む）を前提にしてください。航空会社・料金目安・予約リンクを必ず記載してください。",
+        train: "主な移動手段は電車・新幹線を前提にしてください。路線・所要時間・料金目安・予約リンクを必ず記載してください。",
+        car: "主な移動手段はレンタカー・ドライブを前提にしてください。レンタカー会社・料金目安・予約リンクを必ず記載してください。",
+        bus: "主な移動手段は高速バス・夜行バスを前提にしてください。バス会社・路線・料金目安・予約リンクを必ず記載してください。"
+    };
+
     let instruction = `あなたは旅行プランニングの専門家です。
 ユーザーの条件や希望を正確に反映した、実践的で詳細な旅行プランを日本語で作成してください。
 回答はMarkdown形式で、見出し・箇条書きを活用して読みやすく整理してください。
+
+【最重要】ユーザーが選択したセクションのみを出力してください。選択されていないセクション（例：観光プランが未選択なら日程表・スケジュールなど）は絶対に出力しないでください。
+
+${transportInstructions[transport] || transportInstructions["any"]}
+
+【リンクルール】
+プラン内に登場するすべての施設・店・スポット・交通手段に、必ず以下の検索クエリ型URLでMarkdownリンクを付けること。
+/A2403/ のような深いパスや個別ページURLは絶対に生成禁止。「施設名」「店名」「スポット名」は実際の名称に置き換えること。
+
+- 宿泊施設: [Booking.com](https://www.booking.com/search.html?ss=施設名) [じゃらん](https://www.jalan.net/yad/?keyword=施設名)
+- レストラン: [Googleマップ](https://www.google.com/maps/search/店名+都市名) [食べログ](https://tabelog.com/rstLst/?sk=店名)
+- 観光スポット: [Googleマップ](https://www.google.com/maps/search/スポット名+都市名)
+- 飛行機: [Googleフライト](https://www.google.com/travel/flights) [スカイスキャナー](https://www.skyscanner.jp/)
+- 電車・新幹線: [えきねっと](https://www.eki-net.com/) [Yahoo!乗換](https://transit.yahoo.co.jp/)
+- レンタカー: [楽天レンタカー](https://car.rakuten.co.jp/) [じゃらんレンタカー](https://www.jalan.net/rentacar/)
+- 高速バス: [バス比較なび](https://www.bushikaku.net/) [楽天バス](https://bus.rakuten.co.jp/)
 
 `;
 
@@ -90,7 +114,7 @@ Googleフライト: https://www.google.com/travel/flights
 - グルメ：**〇〇食堂** [食べログ](https://tabelog.com/) [Googleマップ](https://www.google.com/maps/search/〇〇食堂)
 - 航空券：[スカイスキャナーで検索](https://www.skyscanner.jp/) / [Googleフライト](https://www.google.com/travel/flights)
 
-以上の制約に従い、提供された旅行条件に基づいて最高なプランを作ってください。`;
+以上の制約をすべて厳守し、提供された旅行条件に基づいて最高なプランを作ってください。`;
     return instruction;
 }
 
@@ -99,7 +123,7 @@ module.exports = async function handler(req, res) {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { destination, startDate, endDate, budget, budgetStyle, tasks, notes } = req.body;
+    const { destination, startDate, endDate, budget, budgetStyle, transport, tasks, notes } = req.body;
 
     if (!destination) {
         return res.status(400).json({ error: "旅行先を入力してください" });
@@ -111,8 +135,9 @@ module.exports = async function handler(req, res) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const systemInstruction = buildSystemInstruction(budgetStyle, tasks || []);
-    const userPrompt = `旅行先：${destination}\n期間：${startDate} 〜 ${endDate}\n予算：${budget}\nその他の希望：${notes}`;
+    const transportLabels = { any:"おまかせ", plane:"飛行機", train:"電車・新幹線", car:"レンタカー", bus:"高速バス" };
+    const systemInstruction = buildSystemInstruction(budgetStyle, tasks || [], transport || "any");
+    const userPrompt = `旅行先：${destination}\n期間：${startDate} 〜 ${endDate}\n予算：${budget}\n移動手段：${transportLabels[transport]||"おまかせ"}\nその他の希望：${notes}`;
 
     try {
         const model = genAI.getGenerativeModel({
