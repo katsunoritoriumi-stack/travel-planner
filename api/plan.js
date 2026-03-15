@@ -124,7 +124,7 @@ module.exports = async function handler(req, res) {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { destination, startDate, endDate, budget, budgetStyle, transport, tasks, notes } = req.body;
+    const { origin, destination, startDate, endDate, budget, budgetStyle, transport, tasks, notes } = req.body;
 
     if (!destination) {
         return res.status(400).json({ error: "旅行先を入力してください" });
@@ -138,7 +138,7 @@ module.exports = async function handler(req, res) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const transportLabels = { any:"おまかせ", plane:"飛行機", train:"電車・新幹線", car:"レンタカー", bus:"高速バス" };
     const systemInstruction = buildSystemInstruction(budgetStyle, tasks || [], transport || "any");
-    const userPrompt = `旅行先：${destination}\n期間：${startDate} 〜 ${endDate}\n予算：${budget}\n移動手段：${transportLabels[transport]||"おまかせ"}\nその他の希望：${notes}`;
+    const userPrompt = `出発地：${origin}\n旅行先：${destination}\n期間：${startDate} 〜 ${endDate}\n予算：${budget}\n移動手段：${transportLabels[transport]||"おまかせ"}\nその他の希望：${notes}`;
 
     try {
         const model = genAI.getGenerativeModel({
